@@ -23,6 +23,9 @@ class sheetState extends State<sheet>
 
   String name,date;
   DateFormat _dateFormat=new DateFormat.yMMMMd();
+   DateFormat _day=new DateFormat.d();
+  DateFormat _month=new DateFormat.M();
+  
   DateTime _date;
   final GlobalKey<FormState> formkey=GlobalKey<FormState>();
   @override
@@ -114,15 +117,26 @@ class sheetState extends State<sheet>
 
   Future setdata() async{
     final formState=formkey.currentState;
-    if(formState.validate()) {
-      formState.save();
-      FocusScope.of(context).requestFocus(FocusNode());
-      FirebaseUser user = await FirebaseAuth.instance.currentUser();
-      await DatbaseSevice(uid: user.uid).createEvent(
-          widget.event, name, date);
-      Navigator.pop(context);
-      Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: Home()));
-      Toast.show("Event created!!", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
+    if(_date!=null) {
+      if (formState.validate()) {
+        formState.save();
+        FocusScope.of(context).requestFocus(FocusNode());
+        FirebaseUser user = await FirebaseAuth.instance.currentUser();
+        print(_month.format(_date).toString());
+        await DatbaseSevice(uid: user.uid).createEvent(
+            widget.event, name, date,
+            30 * int.parse(_month.format(_date).toString()) +
+                int.parse(_day.format(_date).toString()));
+        Navigator.pop(context);
+        Navigator.push(context,
+            PageTransition(type: PageTransitionType.fade, child: Home()));
+        Toast.show("Event created!!", context, duration: Toast.LENGTH_LONG,
+            gravity: Toast.CENTER);
+      }
+      else{
+        Toast.show("Date Can't be null!!", context, duration: Toast.LENGTH_LONG,
+            gravity: Toast.CENTER);
+      }
     }
   }
 }

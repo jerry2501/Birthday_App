@@ -5,15 +5,18 @@ import 'package:birthdayapp/Authentication/auth.dart';
 import 'package:birthdayapp/Authentication/auth_provider.dart';
 import 'package:birthdayapp/bottom_sheet.dart';
 import 'package:birthdayapp/eventPage.dart';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:firebase_admob/firebase_admob.dart';
 
 const String testDevice='';
+List list=new List();
 
 class Home extends StatefulWidget{
   final VoidCallback onSignedOut;
@@ -31,10 +34,12 @@ class HomeState extends State<Home>
 {
   
   QuerySnapshot snapshot;
+
   bool state=false;
+
   static final MobileAdTargetingInfo targetingInfo = new MobileAdTargetingInfo(
     testDevices:<String>[],
-    keywords: <String>['birthday','anniversary'],
+    keywords: <String>['birthday','anniversary','home','furniture'],
     birthday: DateTime.now(),
     childDirected: true,
   );
@@ -68,6 +73,8 @@ class HomeState extends State<Home>
     // TODO: implement initState
     super.initState();
     getdata();
+    list.clear();
+
     FirebaseAdMob.instance.initialize(appId: 'ca-app-pub-5615961032623800~6659255738');
     _bannerAd=createBannerAd()..load()..show();
 
@@ -84,16 +91,30 @@ class HomeState extends State<Home>
     // TODO: implement build
     return Scaffold(
       appBar: AppBar(
-        title: Text('Birthday'),
+        title: Text("Special Days"),
         centerTitle: true,
         elevation: 0,
         actions: <Widget>[
-          FlatButton(
-            child: Text('Logout', style: TextStyle(fontSize: 17.0, color: Colors.white)),
-            onPressed: () => _signOut(context),
+          InkWell(
+            onTap: (){
+               showSearch(context: context,delegate: SearchService());
+            },
+              child: Padding(
+                padding: EdgeInsets.only(right: 15),
+                child:Icon(Icons.search),
+              )
+          ),
+          InkWell(
+            onTap: () => _signOut(context),
+            child: Padding(
+              padding: EdgeInsets.only(right: 15),
+              child: Icon(Icons.power_settings_new),
+            )
           )
         ],
+
       ),
+      drawer: Drawer(),
       body:WillPopScope(
         onWillPop: onWillPop,
         child: state==false?
@@ -111,6 +132,7 @@ class HomeState extends State<Home>
         ):
            Stack(
              children: <Widget>[
+
                Container(
 //                height: MediaQuery.of(context).size.height/4,
 //                width: MediaQuery.of(context).size.width,
@@ -118,6 +140,7 @@ class HomeState extends State<Home>
 
                  ),
                ),
+
                Column(
                  mainAxisAlignment: MainAxisAlignment.center,
                  crossAxisAlignment: CrossAxisAlignment.center,
@@ -168,41 +191,48 @@ class HomeState extends State<Home>
                            );
                          }
                      ),
-                   )
+                   ),
+
                  ],
                ),
+
              ],
            )
 
             
              
       ),
-     floatingActionButton: SpeedDial(
-       animatedIcon: AnimatedIcons.add_event,
-       child: Icon(Icons.star),
-       overlayColor: Colors.lightBlueAccent,
-       overlayOpacity: 0.2,
-       curve: Curves.easeIn,
-       closeManually: false,
-       children: [
-         SpeedDialChild(
-           child: Icon(Icons.cake),
-           label: "Add new Birthday",
-           backgroundColor: Colors.blue,
-           onTap: (){
-             createInterstitialAd()..load()..show();
-             bottom(context,"Birthday");
-           },
-         ),
-         SpeedDialChild(
-           child: Icon(Icons.wc),
-           label: "Add new Anniversary",
-           backgroundColor: Colors.blue,
-           onTap: (){
-             bottom(context,"Anniversary");
-           },
-         )
-       ],
+     floatingActionButton:
+
+     Padding(
+       padding: EdgeInsets.only(bottom: 50),
+       child: SpeedDial(
+         animatedIcon: AnimatedIcons.add_event,
+         child: Icon(Icons.star),
+         overlayColor: Colors.lightBlueAccent,
+         overlayOpacity: 0.2,
+         curve: Curves.easeIn,
+         closeManually: false,
+         children: [
+           SpeedDialChild(
+             child: Icon(Icons.cake),
+             label: "Add new Birthday",
+             backgroundColor: Colors.blue,
+             onTap: (){
+               createInterstitialAd()..load()..show();
+               bottom(context,"Birthday");
+             },
+           ),
+           SpeedDialChild(
+             child: Icon(Icons.wc),
+             label: "Add new Anniversary",
+             backgroundColor: Colors.blue,
+             onTap: (){
+               bottom(context,"Anniversary");
+             },
+           )
+         ],
+       ),
      ),
     );
   }
@@ -252,19 +282,29 @@ class HomeState extends State<Home>
 
   Future getdata() async{
     FirebaseUser user=await FirebaseAuth.instance.currentUser();
-     await Firestore.instance.collection('users').document(user.uid).collection('events').getDocuments().then((value){
+     await Firestore.instance.collection('users').document(user.uid).collection('events').orderBy('Timestamp',descending:false).getDocuments().then((value){
        setState(() {
          snapshot=value;
+         print(snapshot.documents[0].data['Name']);
          state=true;
        });
      });
-    
+    for(int i=0;i<snapshot.documents.length;i++){
+      setState(() {
+        list.add(snapshot.documents[i].data['Name']);
+
+      });
+
+      print(list);
+    }
   }
 
   Future<void> _signOut(BuildContext context) async {
     try {
       final BaseAuth auth = AuthProvider.of(context).auth;
       await auth.signOut();
+      await GoogleSignIn().disconnect();
+      await GoogleSignIn().signOut();
       Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: LoginPage()));
       widget.onSignedOut();
 
@@ -272,4 +312,83 @@ class HomeState extends State<Home>
       print(e);
     }
   }
+}
+
+
+class SearchService extends SearchDelegate{
+  @override
+  List<Widget> buildActions(BuildContext context) {
+    // TODO: implement buildActions
+    return[
+      IconButton(icon: Icon(Icons.clear),onPressed:(){
+        query="";
+      } ,)
+    ];
+  }
+
+  @override
+  Widget buildLeading(BuildContext context) {
+    // TODO: implement buildLeading
+    return IconButton(icon: AnimatedIcon(
+      icon:AnimatedIcons.menu_arrow,
+      progress: transitionAnimation,
+    ), onPressed: (){
+      close(context, null);
+    });
+  }
+
+  @override
+  Widget buildResults(BuildContext context) {
+
+    // TODO: implement buildResults
+
+  }
+
+  @override
+  Widget buildSuggestions(BuildContext context) {
+    // TODO: implement buildSuggestions
+    final nullList =["No suggestion available"];
+     final suggestionList= query.isEmpty? nullList :
+     list.where((element) => element.startsWith(query.toUpperCase())).toList();
+     print(suggestionList);
+     return ListView.separated(
+
+          separatorBuilder: (context,index){
+            return Divider(
+              thickness: 1,
+              color: Colors.grey,
+            );
+          },
+         itemBuilder: (context,index){
+          return ListTile(
+             onTap: (){
+              getDetails(suggestionList[index].toString(),context);
+             },
+
+             leading: Icon(Icons.account_circle,size: 40,color: Colors.blue,),
+
+             title:RichText(
+               text:TextSpan(
+                 text:suggestionList[index].substring(0,query.length),
+                 style: TextStyle(color: Colors.blue,fontWeight: FontWeight.bold),
+                 children: [
+                   TextSpan(
+                     text: suggestionList[index].substring(query.length),
+                     style: TextStyle(color: Colors.grey),
+                   )
+                 ]
+               ) ,),
+           );
+
+         },
+         itemCount: suggestionList.length,
+     );
+  }
+Future getDetails(String name,BuildContext context) async{
+    FirebaseUser user=await FirebaseAuth.instance.currentUser();
+   QuerySnapshot snapshot= await Firestore.instance.collection('users').document(user.uid).collection('events').where('Name',isEqualTo: name).getDocuments();
+    Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: eventPage(snapshot.documents[0].data)));
+
+
+}
 }

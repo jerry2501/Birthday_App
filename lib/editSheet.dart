@@ -21,6 +21,8 @@ class editSheetState extends State<editSheet> {
   String name, date;
   DateFormat _dateFormat = new DateFormat.yMMMMd();
   DateTime _date;
+  DateFormat _day=new DateFormat.d();
+  DateFormat _month=new DateFormat.M();
   TextEditingController controller;
   final GlobalKey<FormState> formkey = GlobalKey<FormState>();
 
@@ -139,6 +141,7 @@ class editSheetState extends State<editSheet> {
       await Firestore.instance.collection('users').document(user.uid).collection('events').document(widget.map['Uid']).updateData({
         'Name':name,
         'Date':widget.map['Date'],
+        'Timestamp': 30*int.parse(_month.format(_date).toString())+int.parse(_day.format(_date).toString()),
       });
 
       Navigator.pop(context);

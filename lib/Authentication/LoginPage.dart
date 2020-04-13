@@ -1,10 +1,13 @@
 import 'dart:io';
 
+import 'package:birthdayapp/Authentication/database.dart';
 import 'package:birthdayapp/Authentication/signup.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:birthdayapp/FadeAnimation.dart';
 import 'package:flutter/material.dart';
 import 'package:birthdayapp/HomePage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 import 'package:page_transition/page_transition.dart';
 
@@ -25,6 +28,7 @@ class LoginPage extends StatefulWidget {
 
    String email,password;
    final GlobalKey<FormState> formkey=GlobalKey<FormState>();
+   GoogleSignIn _googleSignIn=GoogleSignIn();
 
    Future<bool> onWillPop() async {
 //     DateTime now = DateTime.now();
@@ -164,6 +168,17 @@ class LoginPage extends StatefulWidget {
                           },),
                         ),
                       ))),
+                  FadeAnimation(1.8, Center(
+                      child: Container(
+                        width: 190,
+                        padding: EdgeInsets.all(10),
+                        child: Center(child: FlatButton(child:Text("Sign in with Google", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),),
+                          onPressed: ()
+                          {
+                           googleSignIn();
+                          },),
+                        ),
+                      ))),
                 ],
               ),
             ),
@@ -192,5 +207,22 @@ class LoginPage extends StatefulWidget {
 
          }
        }
+   }
+
+   Future googleSignIn() async{
+
+    GoogleSignInAccount googleUser=await _googleSignIn.signIn();
+     GoogleSignInAuthentication googleAuth= await googleUser.authentication;
+    final AuthCredential credential=GoogleAuthProvider.getCredential(idToken: googleAuth.accessToken, accessToken: googleAuth.idToken);
+    final FirebaseUser firebaseUser=(await FirebaseAuth.instance.signInWithCredential(credential)).user;
+    print(firebaseUser.uid);
+    if(firebaseUser!=null){
+      final QuerySnapshot result=await Firestore.instance.collection('users').where('id',isEqualTo: firebaseUser.uid).getDocuments();
+      if(result.documents.length==0){
+        await DatbaseSevice(uid: firebaseUser.uid).updateUserData(firebaseUser.phoneNumber, firebaseUser.photoUrl, firebaseUser.uid, firebaseUser.displayName);
+      }
+      Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+      //widget.onSignedIn();
+    }
    }
  }
