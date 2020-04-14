@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "772459015622",
-    "firebase_url": "https://birthday-app-a5252.firebaseio.com",
-    "project_id": "birthday-app-a5252",
-    "storage_bucket": "birthday-app-a5252.appspot.com"
+    "project_number": "10933887016",
+    "firebase_url": "https://simple-birthday-reminder-fe290.firebaseio.com",
+    "project_id": "simple-birthday-reminder-fe290",
+    "storage_bucket": "simple-birthday-reminder-fe290.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:772459015622:android:5e5758e71c6ed32b9356c7",
+        "mobilesdk_app_id": "1:10933887016:android:070c8c02e2d94681ec151d",
         "android_client_info": {
           "package_name": "com.jerry.birthdayapp"
         }
       },
       "oauth_client": [
         {
-          "client_id": "772459015622-4imf3f38iqnphafgbgkut7c1ccfqsjim.apps.googleusercontent.com",
+          "client_id": "10933887016-7skaqtqs9e5c3ujj6k4tqbnu75crn6qp.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
             "package_name": "com.jerry.birthdayapp",
@@ -23,26 +23,25 @@
           }
         },
         {
-          "client_id": "772459015622-b57p574h61m0pu7g7l9mt6q7jsaok19k.apps.googleusercontent.com",
+          "client_id": "10933887016-n9tcu1740vbq8gdd7iaiq1o60lu3q85s.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyBt-BwoWCcxFf_W9dxUJj4-riDsMSk7dvA"
+          "current_key": "AIzaSyAoVkzb-5nr79K_5LoxmDXDBg84oFG29_o"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "772459015622-b57p574h61m0pu7g7l9mt6q7jsaok19k.apps.googleusercontent.com",
+              "client_id": "10933887016-n9tcu1740vbq8gdd7iaiq1o60lu3q85s.apps.googleusercontent.com",
               "client_type": 3
             }
           ]
         }
-      },
-      "admob_app_id": "ca-app-pub-5615961032623800~6659255738"
+      }
     }
   ],
   "configuration_version": "1"

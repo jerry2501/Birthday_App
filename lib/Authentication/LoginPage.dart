@@ -20,6 +20,7 @@ class LoginPage extends StatefulWidget {
   final VoidCallback onSignedIn;
 
 
+
   @override
   LoginPageState createState() => new LoginPageState();
 }
@@ -214,10 +215,12 @@ class LoginPage extends StatefulWidget {
     GoogleSignInAccount googleUser=await _googleSignIn.signIn();
      GoogleSignInAuthentication googleAuth= await googleUser.authentication;
     final AuthCredential credential=GoogleAuthProvider.getCredential(idToken: googleAuth.accessToken, accessToken: googleAuth.idToken);
-    final FirebaseUser firebaseUser=(await FirebaseAuth.instance.signInWithCredential(credential)).user;
+    print(credential);
+    final AuthResult authResult=await FirebaseAuth.instance.signInWithCredential(credential);
+    final FirebaseUser firebaseUser=authResult.user;
     print(firebaseUser.uid);
     if(firebaseUser!=null){
-      final QuerySnapshot result=await Firestore.instance.collection('users').where('id',isEqualTo: firebaseUser.uid).getDocuments();
+      final QuerySnapshot result=await Firestore.instance.collection('users').where('Uid',isEqualTo: firebaseUser.uid).getDocuments();
       if(result.documents.length==0){
         await DatbaseSevice(uid: firebaseUser.uid).updateUserData(firebaseUser.phoneNumber, firebaseUser.photoUrl, firebaseUser.uid, firebaseUser.displayName);
       }

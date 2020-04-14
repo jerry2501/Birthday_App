@@ -125,8 +125,7 @@ class sheetState extends State<sheet>
         print(_month.format(_date).toString());
         await DatbaseSevice(uid: user.uid).createEvent(
             widget.event, name, date,
-            30 * int.parse(_month.format(_date).toString()) +
-                int.parse(_day.format(_date).toString()));
+            _date.toString());
         Navigator.pop(context);
         Navigator.push(context,
             PageTransition(type: PageTransitionType.fade, child: Home()));

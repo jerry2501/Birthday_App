@@ -7,6 +7,7 @@ import 'Authentication/auth.dart';
 
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp( AuthProvider(auth:Auth(),
       child: MaterialApp(
           debugShowCheckedModeBanner: false,

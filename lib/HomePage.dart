@@ -1,3 +1,4 @@
+
 import 'dart:io';
 
 import 'package:birthdayapp/Authentication/LoginPage.dart';
@@ -12,11 +13,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:firebase_admob/firebase_admob.dart';
 
 const String testDevice='';
 List list=new List();
+
 
 class Home extends StatefulWidget{
   final VoidCallback onSignedOut;
@@ -32,9 +35,10 @@ class Home extends StatefulWidget{
 }
 class HomeState extends State<Home>
 {
-  
+  List db=new List();
   QuerySnapshot snapshot;
-
+  DateFormat _day=new DateFormat.d();
+  DateFormat _month=new DateFormat.M();
   bool state=false;
 
   static final MobileAdTargetingInfo targetingInfo = new MobileAdTargetingInfo(
@@ -122,7 +126,7 @@ class HomeState extends State<Home>
                   child:CircularProgressIndicator(),
                 )
               :
-        (snapshot.documents.length<1)?
+        (snapshot.documents.length==0)?
         Container(
 //                height: MediaQuery.of(context).size.height/4,
 //                width: MediaQuery.of(context).size.width,
@@ -160,7 +164,7 @@ class HomeState extends State<Home>
                                elevation: 7.0,
                                child:InkWell(
                                  onTap:(){
-                                   Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: eventPage(snapshot.documents[index].data)));
+                                   Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: eventPage(db[index].data)));
                                  },
                                  child: Container(
                                    padding: EdgeInsets.all(10),
@@ -281,14 +285,52 @@ class HomeState extends State<Home>
   }
 
   Future getdata() async{
+    int month=int.parse(DateFormat("M").format(DateTime.now()));
+    int date=int.parse(DateFormat("d").format(DateTime.now()));
+    int minmonth,mindate;
+    print(month);
+    print(date);
+    print(DateFormat("D").format(DateTime.now()));
+   int min,index;
     FirebaseUser user=await FirebaseAuth.instance.currentUser();
      await Firestore.instance.collection('users').document(user.uid).collection('events').orderBy('Timestamp',descending:false).getDocuments().then((value){
        setState(() {
          snapshot=value;
-         print(snapshot.documents[0].data['Name']);
+        
          state=true;
+
        });
      });
+     for(int i=0;i<snapshot.documents.length-1;i++)
+       {
+         setState(() {
+           minmonth=snapshot.documents[i].data['Month'];
+           mindate=snapshot.documents[i].data['Day'];
+         });
+
+         for(int j=i;j<snapshot.documents.length-1;j++)
+           {
+             if(minmonth>=snapshot.documents[j+1].data['Month']-month && snapshot.documents[j+1].data['Month']-month>0)
+               {
+                 if(mindate>=snapshot.documents[j+1].data['Day']-date && snapshot.documents[j+1].data['Day']-date>0){
+                   setState(() {
+                    // db.add(snapshot.documents[j+1].data);
+                     var temp= snapshot.documents[j];
+                     snapshot.documents[i]=snapshot.documents[j+1];
+                     snapshot.documents[j+1]=temp;
+                   });
+
+                 }
+               }
+             else{
+               setState(() {
+                 //db.add(snapshot.documents[i].data);
+                 snapshot.documents[i]=snapshot.documents[i];
+               });
+
+             }
+           }
+       }
     for(int i=0;i<snapshot.documents.length;i++){
       setState(() {
         list.add(snapshot.documents[i].data['Name']);
