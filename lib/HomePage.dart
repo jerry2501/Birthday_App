@@ -36,7 +36,8 @@ class Home extends StatefulWidget{
 class HomeState extends State<Home>
 {
   List db=new List();
-  QuerySnapshot snapshot;
+  List dbminus=new List();
+  QuerySnapshot snapshot,snapshotminus;
   DateFormat _day=new DateFormat.d();
   DateFormat _month=new DateFormat.M();
   bool state=false;
@@ -151,50 +152,99 @@ class HomeState extends State<Home>
                  children: <Widget>[
                    SizedBox(height: MediaQuery.of(context).size.height/4,),
                    Expanded(
-                     child: ListView.separated( shrinkWrap: true,
-                         itemCount: snapshot.documents.length,
-                         separatorBuilder: (context,index)=>SizedBox(height: 10,),
-                         itemBuilder: (BuildContext ctx, int index){
-                           return Container(
-                             padding: EdgeInsets.only(left: 10,right: 10),
-                             child: Card(
-                               margin:EdgeInsets.all(2),
-                               color: Colors.lightBlue[50],
-                               borderOnForeground: true,
-                               elevation: 7.0,
-                               child:InkWell(
-                                 onTap:(){
-                                   Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: eventPage(db[index].data)));
-                                 },
-                                 child: Container(
-                                   padding: EdgeInsets.all(10),
-                                   child: Row(
-                                     children: <Widget>[
-                                       Hero(
-                                         tag:snapshot.documents[index].data['Uid'],
-                                         child: ClipOval(
-
-
-                                           child: Image.asset('images/avatar.jpg',height: 45,width: 45,),
-                                         ),
-                                       ),
-                                       SizedBox(width: 30,),
-                                       Column(
-                                         crossAxisAlignment: CrossAxisAlignment.start,
+                     child: Column(
+                       children: <Widget>[
+                         ListView.separated( shrinkWrap: true,
+                             itemCount: snapshot.documents.length,
+                             separatorBuilder: (context,index)=>SizedBox(height: 10,),
+                             itemBuilder: (BuildContext ctx, int index){
+                               return Container(
+                                 padding: EdgeInsets.only(left: 10,right: 10),
+                                 child: Card(
+                                   margin:EdgeInsets.all(2),
+                                   color: Colors.lightBlue[50],
+                                   borderOnForeground: true,
+                                   elevation: 7.0,
+                                   child:InkWell(
+                                     onTap:(){
+                                       Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: eventPage(db[index].data)));
+                                     },
+                                     child: Container(
+                                       padding: EdgeInsets.all(10),
+                                       child: Row(
                                          children: <Widget>[
-                                           Text(snapshot.documents[index].data['Name'],style: TextStyle(fontFamily: "R",fontSize: 16,color: Colors.blue,fontWeight: FontWeight.bold),),
-                                           SizedBox(height: 4,),
-                                           Text(snapshot.documents[index].data['Event']+" on "+snapshot.documents[index].data['Date'],style: TextStyle(fontFamily: "R",fontSize: 14,color: Colors.black.withOpacity(0.6)),)
+                                           Hero(
+                                             tag:snapshot.documents[index].data['Uid'],
+                                             child: ClipOval(
+
+
+                                               child: Image.asset('images/avatar.jpg',height: 45,width: 45,),
+                                             ),
+                                           ),
+                                           SizedBox(width: 30,),
+                                           Column(
+                                             crossAxisAlignment: CrossAxisAlignment.start,
+                                             children: <Widget>[
+                                               Text(snapshot.documents[index].data['Name'],style: TextStyle(fontFamily: "R",fontSize: 16,color: Colors.blue,fontWeight: FontWeight.bold),),
+                                               SizedBox(height: 4,),
+                                               Text(snapshot.documents[index].data['Event']+" on "+snapshot.documents[index].data['Date'],style: TextStyle(fontFamily: "R",fontSize: 14,color: Colors.black.withOpacity(0.6)),)
+                                             ],
+                                           )
                                          ],
-                                       )
-                                     ],
+                                       ),
+                                     ),
                                    ),
                                  ),
-                               ),
-                             ),
-                           );
-                         }
-                     ),
+                               );
+                             }
+                         ),
+                          SizedBox(height: 7,),
+                         ListView.separated( shrinkWrap: true,
+                             itemCount: snapshotminus.documents.length,
+                             separatorBuilder: (context,index)=>SizedBox(height: 10,),
+                             itemBuilder: (BuildContext ctx, int index){
+                               return Container(
+                                 padding: EdgeInsets.only(left: 10,right: 10),
+                                 child: Card(
+                                   margin:EdgeInsets.all(2),
+                                   color: Colors.lightBlue[50],
+                                   borderOnForeground: true,
+                                   elevation: 7.0,
+                                   child:InkWell(
+                                     onTap:(){
+                                       Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: eventPage(db[index].data)));
+                                     },
+                                     child: Container(
+                                       padding: EdgeInsets.all(10),
+                                       child: Row(
+                                         children: <Widget>[
+                                           Hero(
+                                             tag:snapshotminus.documents[index].data['Uid'],
+                                             child: ClipOval(
+
+
+                                               child: Image.asset('images/avatar.jpg',height: 45,width: 45,),
+                                             ),
+                                           ),
+                                           SizedBox(width: 30,),
+                                           Column(
+                                             crossAxisAlignment: CrossAxisAlignment.start,
+                                             children: <Widget>[
+                                               Text(snapshotminus.documents[index].data['Name'],style: TextStyle(fontFamily: "R",fontSize: 16,color: Colors.blue,fontWeight: FontWeight.bold),),
+                                               SizedBox(height: 4,),
+                                               Text(snapshotminus.documents[index].data['Event']+" on "+snapshotminus.documents[index].data['Date'],style: TextStyle(fontFamily: "R",fontSize: 14,color: Colors.black.withOpacity(0.6)),)
+                                             ],
+                                           )
+                                         ],
+                                       ),
+                                     ),
+                                   ),
+                                 ),
+                               );
+                             }
+                         ),
+                       ],
+                     )
                    ),
 
                  ],
@@ -287,56 +337,47 @@ class HomeState extends State<Home>
   Future getdata() async{
     int month=int.parse(DateFormat("M").format(DateTime.now()));
     int date=int.parse(DateFormat("d").format(DateTime.now()));
-    int minmonth,mindate;
+    int today;
+    if(date.toString().length==1){
+      setState(() {
+        today=int.parse(month.toString()+(date*10).toString());
+      });
+    }
+    else
+      {
+        setState(() {
+          today=int.parse(month.toString()+(date).toString());
+        });
+      }
     print(month);
     print(date);
     print(DateFormat("D").format(DateTime.now()));
+    print(month.toString()+" "+date.toString());
    int min,index;
     FirebaseUser user=await FirebaseAuth.instance.currentUser();
-     await Firestore.instance.collection('users').document(user.uid).collection('events').orderBy('Timestamp',descending:false).getDocuments().then((value){
+     await Firestore.instance.collection('users').document(user.uid).collection('events').where('EventToken',isGreaterThanOrEqualTo:today).orderBy('EventToken').getDocuments().then((value){
        setState(() {
          snapshot=value;
-        
-         state=true;
-
        });
      });
-     for(int i=0;i<snapshot.documents.length-1;i++)
-       {
-         setState(() {
-           minmonth=snapshot.documents[i].data['Month'];
-           mindate=snapshot.documents[i].data['Day'];
-         });
-
-         for(int j=i;j<snapshot.documents.length-1;j++)
-           {
-             if(minmonth>=snapshot.documents[j+1].data['Month']-month && snapshot.documents[j+1].data['Month']-month>0)
-               {
-                 if(mindate>=snapshot.documents[j+1].data['Day']-date && snapshot.documents[j+1].data['Day']-date>0){
-                   setState(() {
-                    // db.add(snapshot.documents[j+1].data);
-                     var temp= snapshot.documents[j];
-                     snapshot.documents[i]=snapshot.documents[j+1];
-                     snapshot.documents[j+1]=temp;
-                   });
-
-                 }
-               }
-             else{
-               setState(() {
-                 //db.add(snapshot.documents[i].data);
-                 snapshot.documents[i]=snapshot.documents[i];
-               });
-
-             }
-           }
-       }
+    await Firestore.instance.collection('users').document(user.uid).collection('events').where('EventToken',isLessThan:today).orderBy('EventToken').getDocuments().then((value){
+      setState(() {
+        snapshotminus=value;
+        state=true;
+      });
+    });
     for(int i=0;i<snapshot.documents.length;i++){
       setState(() {
         list.add(snapshot.documents[i].data['Name']);
 
       });
+      print(list);
+    }
+    for(int i=0;i<snapshotminus.documents.length;i++){
+      setState(() {
+        list.add(snapshotminus.documents[i].data['Name']);
 
+      });
       print(list);
     }
   }

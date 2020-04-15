@@ -15,15 +15,15 @@ class DatbaseSevice{
 
     });
   }
-  Future createEvent(String event,String name,String date,var data) async
+  Future createEvent(String event,String name,String date,String id,int eventToken) async
   {
-    String id=DateTime.now().toString();
+
     return await collectionReference.document(uid).collection('events').document(id).setData({
       'Event':event,
       'Name':name,
       'Date':date,
       'Uid':id,
-      'Timestamp':data,
+       'EventToken':eventToken,
     });
   }
 }

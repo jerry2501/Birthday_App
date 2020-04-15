@@ -25,7 +25,8 @@ class sheetState extends State<sheet>
   DateFormat _dateFormat=new DateFormat.yMMMMd();
    DateFormat _day=new DateFormat.d();
   DateFormat _month=new DateFormat.M();
-  
+  int month,day;
+
   DateTime _date;
   final GlobalKey<FormState> formkey=GlobalKey<FormState>();
   @override
@@ -117,15 +118,30 @@ class sheetState extends State<sheet>
 
   Future setdata() async{
     final formState=formkey.currentState;
+    String id,e=widget.event;
+    int token;
     if(_date!=null) {
+      setState(() {
+        day= int.parse(DateFormat("d").format(_date));
+        month=int.parse(DateFormat("M").format(_date));
+
+        id="$month $day$name$e";
+      });
+      if(day.toString().length==1){setState(() {
+        token=int.parse(month.toString()+(day*10).toString());
+      });}
+      else{
+        setState(() {
+          token=int.parse(month.toString()+(day).toString());
+        });
+      }
       if (formState.validate()) {
         formState.save();
         FocusScope.of(context).requestFocus(FocusNode());
         FirebaseUser user = await FirebaseAuth.instance.currentUser();
         print(_month.format(_date).toString());
         await DatbaseSevice(uid: user.uid).createEvent(
-            widget.event, name, date,
-            _date.toString());
+            widget.event, name, date,id,token);
         Navigator.pop(context);
         Navigator.push(context,
             PageTransition(type: PageTransitionType.fade, child: Home()));
