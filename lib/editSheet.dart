@@ -19,10 +19,11 @@ class editSheet extends StatefulWidget{
 }
 class editSheetState extends State<editSheet> {
   String name, date;
+  int month, day;
   DateFormat _dateFormat = new DateFormat.yMMMMd();
   DateTime _date;
-  DateFormat _day=new DateFormat.d();
-  DateFormat _month=new DateFormat.M();
+  DateFormat _day = new DateFormat.d();
+  DateFormat _month = new DateFormat.M();
   TextEditingController controller;
   final GlobalKey<FormState> formkey = GlobalKey<FormState>();
 
@@ -60,7 +61,6 @@ class editSheetState extends State<editSheet> {
                     initialValue: widget.map['Name'],
                     onChanged: (value) {
                       setState(() {
-
                         name = value.toUpperCase();
                       });
                     },
@@ -85,7 +85,7 @@ class editSheetState extends State<editSheet> {
                         width: 120,
                         child: Text(
 
-                           widget.map['Date'],
+                          widget.map['Date'],
                           style: TextStyle(fontSize: 16),
                         ),
                       ),
@@ -133,22 +133,50 @@ class editSheetState extends State<editSheet> {
 
   Future editdata() async {
     final formState = formkey.currentState;
-    if (formState.validate()) {
-      formState.save();
-      if(name==null){name=widget.map['Name'];}
-      FocusScope.of(context).requestFocus(FocusNode());
-      FirebaseUser user = await FirebaseAuth.instance.currentUser();
-      await Firestore.instance.collection('users').document(user.uid).collection('events').document(widget.map['Uid']).updateData({
-        'Name':name,
-        'Date':widget.map['Date'],
-        'Timestamp': _date.toString(),
+    String id,
+        e = widget.map['Event'];
+    int token;
+    if (_date != null) {
+      setState(() {
+        day = int.parse(DateFormat("d").format(_date));
+        month = int.parse(DateFormat("M").format(_date));
+
+        id = "$month $day$name$e";
       });
+      if (day
+          .toString()
+          .length == 1) {
+        setState(() {
+          token = int.parse(month.toString() + (day * 10).toString());
+        });
+      }
+      else {
+        setState(() {
+          token = int.parse(month.toString() + (day).toString());
+        });
+      }
+      if (formState.validate()) {
+        formState.save();
+        if (name == null) {
+          name = widget.map['Name'];
+        }
+        FocusScope.of(context).requestFocus(FocusNode());
+        FirebaseUser user = await FirebaseAuth.instance.currentUser();
+        await Firestore.instance.collection('users').document(user.uid)
+            .collection('events').document(widget.map['Uid'])
+            .updateData({
+          'Name': name,
+          'Date': widget.map['Date'],
+          'EventToken': token,
+        });
 
-      Navigator.pop(context);
-      Navigator.push(context, PageTransition(type: PageTransitionType.fade, child: Home()));
-      Toast.show("Event Edited Successfully!!", context, duration: Toast.LENGTH_LONG, gravity:  Toast.CENTER);
+        Navigator.pop(context);
+        Navigator.push(context,
+            PageTransition(type: PageTransitionType.fade, child: Home()));
+        Toast.show(
+            "Event Edited Successfully!!", context, duration: Toast.LENGTH_LONG,
+            gravity: Toast.CENTER);
+      }
     }
-
   }
-
 }

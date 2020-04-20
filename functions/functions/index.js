@@ -3,7 +3,7 @@ const admin = require('firebase-admin');
 
 admin.initializeApp(functions.config().firebase);
 var msgData;
- exports.offerTrigger = functions.firestore.document('users/{userId}').onCreate((snapshot,context) => {
+ exports.offerTrigger = functions.firestore.document('users/{userId}/events/{eventId}').onCreate((snapshot,context) => {
      msgData = snapshot.data();
 
      admin.firestore().collection('pushtokens').get().then((snapshots)=>{

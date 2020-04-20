@@ -177,24 +177,24 @@ class signup_layout extends State<signup>
 
   Future<void> signUp() async
   {
-    final formState=formkey.currentState;
-    if(formState.validate())
-    {
-      formState.save();
-      try {
-        key=name[0];
-         AuthResult user = await FirebaseAuth.instance
-            .createUserWithEmailAndPassword(
-            email: email, password: password) ;
-            await DatbaseSevice(uid: user.user.uid).updateUserData(number,city,user.user.uid,name);
-          user.user.sendEmailVerification();
-          Navigator.of(context).pop();
-        print(user.user.email);
-        Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
-      }catch(e){
-        print(e.message);
-      }
-    }
+//    final formState=formkey.currentState;
+//    if(formState.validate())
+//    {
+//      formState.save();
+//      try {
+//        key=name[0];
+//         AuthResult user = await FirebaseAuth.instance
+//            .createUserWithEmailAndPassword(
+//            email: email, password: password) ;
+//            await DatbaseSevice(uid: user.user.uid).updateUserData(number,city,user.user.uid,name);
+//          user.user.sendEmailVerification();
+//          Navigator.of(context).pop();
+//        print(user.user.email);
+//        Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
+//      }catch(e){
+//        print(e.message);
+//      }
+//    }
   }
 
 }

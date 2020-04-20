@@ -11,7 +11,7 @@ void main() {
   runApp( AuthProvider(auth:Auth(),
       child: MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Seva Admin',
+          title: 'Simple Birthday Reminder',
           home: rootpage()
       )));
 }

@@ -1,7 +1,9 @@
 import 'package:birthdayapp/Authentication/database.dart';
 import 'package:birthdayapp/HomePage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:intl/intl.dart';
 import 'package:page_transition/page_transition.dart';
@@ -10,7 +12,8 @@ import 'package:toast/toast.dart';
 class sheet extends StatefulWidget
 {
   String event;
-  sheet(this.event);
+  Map userdocument;
+  sheet(this.event,this.userdocument);
   @override
   State<StatefulWidget> createState() {
     // TODO: implement createState
@@ -21,20 +24,81 @@ class sheet extends StatefulWidget
 class sheetState extends State<sheet>
 {
 
-  String name,date;
+  String name,date,id;
   DateFormat _dateFormat=new DateFormat.yMMMMd();
    DateFormat _day=new DateFormat.d();
   DateFormat _month=new DateFormat.M();
-  int month,day;
+  int month,day,smsid;
+  bool state;
 
   DateTime _date;
   final GlobalKey<FormState> formkey=GlobalKey<FormState>();
+  FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin=FlutterLocalNotificationsPlugin();
+  AndroidInitializationSettings androidInitializationSettings;
+  IOSInitializationSettings iosInitializationSettings;
+  InitializationSettings initializationSettings;
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    initializing();
+
+  }
+  void initializing() async{
+    androidInitializationSettings=AndroidInitializationSettings('app_icon');
+    iosInitializationSettings=IOSInitializationSettings(onDidReceiveLocalNotification: onDidReceiveLocalNotification);
+    initializationSettings=InitializationSettings(androidInitializationSettings,iosInitializationSettings);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings,onSelectNotification: onSelectNotification);
+  }
+
+  void _showSchduledNotification(DateTime date,int id) async{
+    await scheduledNotification(date,id);
+  }
+
+
+  Future<void> scheduledNotification(DateTime date,int id) async{
+    var timeDelayed=date.add(Duration(hours: widget.userdocument['Notification_hour'],minutes: widget.userdocument['Notification_minute']));
+    print(timeDelayed);
+    AndroidNotificationDetails androidNotificationDetails=AndroidNotificationDetails(
+        '$id Channel _ID',
+        '$id Channel title',
+        '$id Channel body',
+        priority: Priority.High,
+        importance: Importance.Max,
+        ticker: 'Test'
+    );
+
+    IOSNotificationDetails iosNotificationDetails=IOSNotificationDetails();
+    NotificationDetails notificationDetails=NotificationDetails(androidNotificationDetails,iosNotificationDetails);
+    await flutterLocalNotificationsPlugin.schedule(id, "Special Days", name+"'s "+widget.event+" today",timeDelayed, notificationDetails);
+  }
+
+  Future onSelectNotification(String payload){
+    if(payload!=null){
+      print(payload);
+    }
+    //navigate page code here
+
+  }
+
+  Future onDidReceiveLocalNotification(int id,String title,String body,String payload) async{
+    return CupertinoAlertDialog(
+      title: Text(title),
+      content: Text(body),
+      actions: <Widget>[
+        CupertinoDialogAction(child: Text("okay"),onPressed: (){
+          print("");
+        },)
+      ],
+    );
+  }
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
    return Container(
      padding: EdgeInsets.all(30.0),
-     child: Wrap(
+     child: state==false?
+         Center(child: CircularProgressIndicator(),):Wrap(
        crossAxisAlignment: WrapCrossAlignment.center,
 
        children: <Widget>[
@@ -118,7 +182,7 @@ class sheetState extends State<sheet>
 
   Future setdata() async{
     final formState=formkey.currentState;
-    String id,e=widget.event;
+    String e=widget.event;
     int token;
     if(_date!=null) {
       setState(() {
@@ -133,16 +197,37 @@ class sheetState extends State<sheet>
       else{
         setState(() {
           token=int.parse(month.toString()+(day).toString());
+
         });
       }
       if (formState.validate()) {
+        setState(() {
+          state=false;
+          smsid=int.parse(token.toString()+DateTime.now().hour.toString()+DateTime.now().minute.toString()+(DateTime.now().second).toString());
+        });
         formState.save();
         FocusScope.of(context).requestFocus(FocusNode());
         FirebaseUser user = await FirebaseAuth.instance.currentUser();
         print(_month.format(_date).toString());
         await DatbaseSevice(uid: user.uid).createEvent(
-            widget.event, name, date,id,token);
+            widget.event, name, date,id,token,smsid);
         Navigator.pop(context);
+        DateTime ndate;
+        int sid=smsid;
+        for(int i=0;i<=10;i++){
+
+          setState(() {
+            ndate = DateTime.parse("${DateTime.now().year+i}-0$month-$day 00:00:00.000");
+          });
+
+          _showSchduledNotification(ndate,sid);
+          setState(() {
+            sid++;
+          });
+        }
+        setState(() {
+          state=true;
+        });
         Navigator.push(context,
             PageTransition(type: PageTransitionType.fade, child: Home()));
         Toast.show("Event created!!", context, duration: Toast.LENGTH_LONG,

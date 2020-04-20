@@ -26,10 +26,11 @@ class LoginPage extends StatefulWidget {
 }
  class LoginPageState extends State<LoginPage>
  {
-
+   GoogleSignIn googlesignIn = GoogleSignIn();
    String email,password;
+   bool state;
    final GlobalKey<FormState> formkey=GlobalKey<FormState>();
-   GoogleSignIn _googleSignIn=GoogleSignIn();
+
 
    Future<bool> onWillPop() async {
 //     DateTime now = DateTime.now();
@@ -71,7 +72,7 @@ class LoginPage extends StatefulWidget {
         backgroundColor: Color.fromRGBO(3, 9, 23, 1),
       body: WillPopScope(
         onWillPop: onWillPop,
-        child: Stack(
+        child:Stack(
           children: <Widget>[
             Container(
               decoration: new BoxDecoration(
@@ -80,7 +81,11 @@ class LoginPage extends StatefulWidget {
                 ),
               ),
             ),
-            Container(
+            state==false?
+            Center(
+                child:CircularProgressIndicator(),
+            )
+                : Container(
               padding: EdgeInsets.all(30),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,7 +181,7 @@ class LoginPage extends StatefulWidget {
                         child: Center(child: FlatButton(child:Text("Sign in with Google", style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),),
                           onPressed: ()
                           {
-                           googleSignIn();
+                           SignIng();
                           },),
                         ),
                       ))),
@@ -210,20 +215,27 @@ class LoginPage extends StatefulWidget {
        }
    }
 
-   Future googleSignIn() async{
+   Future SignIng() async{
 
-    GoogleSignInAccount googleUser=await _googleSignIn.signIn();
-     GoogleSignInAuthentication googleAuth= await googleUser.authentication;
-    final AuthCredential credential=GoogleAuthProvider.getCredential(idToken: googleAuth.accessToken, accessToken: googleAuth.idToken);
+     final GoogleSignInAccount googleUser=await googlesignIn.signIn();
+     final GoogleSignInAuthentication googleAuth= await googleUser.authentication;
+    final AuthCredential credential=GoogleAuthProvider.getCredential(idToken: googleAuth.idToken, accessToken: googleAuth.accessToken);
     print(credential);
     final AuthResult authResult=await FirebaseAuth.instance.signInWithCredential(credential);
     final FirebaseUser firebaseUser=authResult.user;
     print(firebaseUser.uid);
+    setState(() {
+      state=false;
+    });
     if(firebaseUser!=null){
       final QuerySnapshot result=await Firestore.instance.collection('users').where('Uid',isEqualTo: firebaseUser.uid).getDocuments();
       if(result.documents.length==0){
-        await DatbaseSevice(uid: firebaseUser.uid).updateUserData(firebaseUser.phoneNumber, firebaseUser.photoUrl, firebaseUser.uid, firebaseUser.displayName);
+        await DatbaseSevice(uid: firebaseUser.uid).updateUserData(firebaseUser.phoneNumber,firebaseUser.email, firebaseUser.photoUrl, firebaseUser.uid, firebaseUser.displayName,00,00);
       }
+
+      setState(() {
+        state=true;
+      });
       Navigator.push(context, MaterialPageRoute(builder: (context) => Home()));
       //widget.onSignedIn();
     }
